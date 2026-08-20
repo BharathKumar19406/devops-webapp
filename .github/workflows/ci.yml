@@ -4,32 +4,42 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
+
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Check files
+      - name: Check project files
         run: |
-          echo "Checking project files..."
+          echo "Checking project files"
           ls -la
 
       - name: Validate HTML
         run: |
           test -f index.html
-          echo "HTML file exists"
+          echo "index.html exists"
 
       - name: Build
         run: |
           echo "Build completed successfully"
 
-      - name: Finish
+      - name: Slack Success Notification
+        if: success()
         run: |
-          echo "CI pipeline completed"
+          curl -X POST \
+          -H 'Content-type: application/json' \
+          --data '{"text":"VLE3 CI Pipeline completed successfully."}' \
+          '${{ secrets.SLACK_WEBHOOK_URL }}'
+
+      - name: Slack Failure Notification
+        if: failure()
+        run: |
+          curl -X POST \
+          -H 'Content-type: application/json' \
+          --data '{"text":"VLE3 CI Pipeline failed."}' \
+          '${{ secrets.SLACK_WEBHOOK_URL }}'
